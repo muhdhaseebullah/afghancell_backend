@@ -2,6 +2,11 @@ const asyncHandler = require("express-async-handler");
 const { count } = require("../models/order_model.js");
 const Order = require("../models/order_model.js");
 const User = require("../models/user_model.js");
+const moment = require('moment')
+
+function convertTZ(date, tzString) {
+  return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {timeZone: tzString}));   
+}
 
 // @desc    Add new order
 // @route   POST /api/order
@@ -15,12 +20,6 @@ const order = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Invalid User");
   }
-
-  // if (finduser.amount >= amount  ) {
-  //   const changeamount = await User.findByIdAndUpdate(id, {
-  //     amount: finduser.amount - amount,
-  //   });
-  // }
 
   if (finduser.amount < amount) {
     res.status(400);
@@ -37,32 +36,34 @@ const order = asyncHandler(async (req, res) => {
   }
 
   let dateObj = new Date();
-  let myDate =
-    dateObj.getFullYear() +
-    "/" +
-    dateObj.getDate() +
-    1 +
-    "/" +
-    dateObj.getMonth();
-  var today = new Date();
-  var time =
-    myDate +
-    today.getHours() +
-    ":" +
-    (today.getMinutes() - 5) +
-    ":" +
-    today.getSeconds();
-  console.log(time);
+
+  let currentDateTime = dateObj.toLocaleString("en-GB",{ timeZone: 'UTC' });
+  const currentDay = currentDateTime.substring(0,2)
+  const currentMonth = currentDateTime.substring(3,5)
+  const currentYear = currentDateTime.substring(6,10)
+  const hour = currentDateTime.substring(12,14)
+  const min = currentDateTime.substring(15,17)
+  const sec = currentDateTime.substring(18,20)
+
+  const today = moment(`${currentMonth}-${currentDay}-${currentYear} ${hour}:${min}:${sec} +0000`, "MM-DD-YYYY hh:mm:ss Z");
+  var time = moment.duration("00:05:00");
+  today.subtract(time)
+  
   const findpendingOrders = await Order.find({
     action: "pending",
     user: finduser,
+    createdAt: {
+      $gte: today.toDate(),
+      $lte: moment(today).endOf('day').toDate()
+    }
   });
 
-  // if (findpendingOrders) {
-  //   console.log("haseeb");
-  // }
+  console.log(findpendingOrders)
 
-  // console.log(currentDate);
+  if(findpendingOrders.length != 0 && findpendingOrders != null){
+    res.status(400);
+    throw new Error("You can not reload on this number before 5 minutes");
+  }
 
   var date = new Date();
   var year = date.getFullYear();
@@ -86,6 +87,9 @@ const order = asyncHandler(async (req, res) => {
   });
 
   if (order) {
+    finduser.amount -= amount;
+    finduser.save();
+
     res.status(201).json({
       operataor: order.operataor,
       amount: order.amount,
@@ -97,10 +101,6 @@ const order = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Inavlid Order");
   }
-  // } else {
-  //   res.status(400);
-  //   throw new Error(`Your ${amount} is greater than ${finduser.amount}`);
-  // }
 });
 
 // @desc    Get order history
@@ -367,15 +367,14 @@ const updateOrderAction = asyncHandler(async (req, res) => {
     action: action,
   });
 
-  if (action == "approve") {
+  if (action != "approve") {
     const finduser = await Order.findById(req.params.id).populate("user");
     const amount = finduser.user.amount;
-    // console.log(amount);
 
     const userAmount = await User.findByIdAndUpdate(finduser.user._id, {
-      amount: amount - order.amount,
+      amount: amount + order.amount,
     });
-  }
+  }  
 
   res.status(200).json(order);
 });
