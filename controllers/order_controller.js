@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { count } = require("../models/order_model.js");
 const Order = require("../models/order_model.js");
 const User = require("../models/user_model.js");
 
@@ -21,14 +22,47 @@ const order = asyncHandler(async (req, res) => {
   //   });
   // }
 
+  if (finduser.amount < amount) {
+    res.status(400);
+    throw new Error("Transaction amount in greater than your balance...");
+  }
+
   if (amount < 50) {
     res.status(400);
-    throw new Error("50 se kam mn transaction nhi ho skti");
+    throw new Error("Transaction should be greater than 50...");
   }
   if (amount > 20000) {
     res.status(400);
-    throw new Error("auqat se bahar ja rahe ho");
+    throw new Error("Transaction should be smaller than 20,001...");
   }
+
+  let dateObj = new Date();
+  let myDate =
+    dateObj.getFullYear() +
+    "/" +
+    dateObj.getDate() +
+    1 +
+    "/" +
+    dateObj.getMonth();
+  var today = new Date();
+  var time =
+    myDate +
+    today.getHours() +
+    ":" +
+    (today.getMinutes() - 5) +
+    ":" +
+    today.getSeconds();
+  console.log(time);
+  const findpendingOrders = await Order.find({
+    action: "pending",
+    user: finduser,
+  });
+
+  // if (findpendingOrders) {
+  //   console.log("haseeb");
+  // }
+
+  // console.log(currentDate);
 
   var date = new Date();
   var year = date.getFullYear();
@@ -73,9 +107,12 @@ const order = asyncHandler(async (req, res) => {
 // @route   GET /api/getorderhistorty
 // @access  protect
 const getOrderHistory = asyncHandler(async (req, res) => {
-  const orderHistory = await Order.find().populate("user");
+  const orderHistory = await Order.find({
+    action: { $ne: "pending" },
+  }).populate("user");
   res.status(200).json(orderHistory);
 });
+
 // @desc    Get order history
 // @route   GET /api/getpendingorderhistorty
 // @access  protect
@@ -112,7 +149,8 @@ const getTotalOrder = asyncHandler(async (req, res) => {
   //@desc   total credit
   let credit;
   let creditData = 0;
-  if (totalOrderPerDay > 0) {
+  if (totalorder > 0) {
+    console.log("hello");
     credit = await Order.aggregate([
       {
         $match: {
@@ -139,7 +177,7 @@ const getTotalOrder = asyncHandler(async (req, res) => {
     },
   ]);
 
-  //@desc fiinding today date
+  //@desc finding today date
   var date = new Date();
   var year = date.getFullYear();
   var month = date.getMonth() + 1;

@@ -10,6 +10,8 @@ const {
   updateUsernamePassword,
   getSingleUserInfo,
   userWiseSubuser,
+  userRecharge,
+  userWiseSubuserRecharge,
 } = require("../controllers/user_controller.js");
 const protect = require("../middlewares/auth_middleware.js");
 
@@ -24,6 +26,8 @@ router.get("/userwisesubuser/:id", protect, userWiseSubuser);
 router.get("/getsingleuser/:id", protect, getSingleUser);
 router.get("/getsubuser/:id", protect, getSubUser);
 router.get("/getsingleuserinfo/:id", getSingleUserInfo);
+router.put("/userrecharge/:id", userRecharge);
 router.delete("/deleteuser/:id", protect, deleteUser);
+router.get("/userwisesubuserrecharge/:id", protect, userWiseSubuserRecharge);
 
 module.exports = router;

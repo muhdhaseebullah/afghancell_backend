@@ -19,6 +19,7 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
+      select: false,
       required: [true, "Please add a password"],
     },
     amount: {

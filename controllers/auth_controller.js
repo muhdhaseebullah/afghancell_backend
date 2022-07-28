@@ -10,7 +10,7 @@ const login = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
 
   // Check for register user name
-  const user = await User.findOne({ username });
+  const user = await User.findOne({ username }).select("+password");
 
   if (user && (await bcrypt.compare(password, user.password))) {
     const accessToken = generateAccessToken(user._id);
@@ -57,6 +57,14 @@ const register = asyncHandler(async (req, res) => {
   if (userExists) {
     res.status(400);
     throw new Error("User already exists");
+  }
+
+  // Check if user contact exists
+  const userContact = await User.findOne({ contact });
+
+  if (userContact) {
+    res.status(400);
+    throw new Error("Contact already exists");
   }
 
   // find login user role
