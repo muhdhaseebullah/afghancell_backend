@@ -14,7 +14,7 @@ const orderSchema = mongoose.Schema(
     },
     topup_no: {
       type: String,
-      required: [true, "Please add amount"],
+      required: [true, "Please add topup no"],
     },
     amount: {
       type: Number,
