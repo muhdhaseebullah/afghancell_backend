@@ -187,10 +187,13 @@ const getTotalOrder = asyncHandler(async (req, res) => {
   ]);
 
   //@desc finding today date
-  var date = new Date();
-  var year = date.getFullYear();
-  var month = date.getMonth() + 1;
-  var day = date.getDate();
+  let dateObj = new Date();
+
+  let currentDateTime = dateObj.toLocaleString("en-GB", { timeZone: "UTC" });
+  const day = currentDateTime.substring(0, 2);
+  const month = currentDateTime.substring(3, 5);
+  const year = currentDateTime.substring(6, 10);
+
   if (month < 10) {
     month = "0" + month;
   }
