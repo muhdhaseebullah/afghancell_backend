@@ -9,7 +9,7 @@ const Recharge = require("../models/recharge_model.js");
 // @route   PUT /api/updateusermaount/:id
 // @access  protect
 const updateUserAmount = asyncHandler(async (req, res) => {
-  const { role, amount } = req.body;
+  const { amount } = req.body;
   const user = await User.findByIdAndUpdate(req.params.id, {
     $inc: { amount: +amount },
   });

@@ -107,17 +107,6 @@ const register = asyncHandler(async (req, res) => {
     });
   }
 
-  // const user = await User.create({
-  //   username,
-  //   contact,
-  //   country,
-  //   role,
-  //   state,
-  //   displayname,
-  //   user_id: userId,
-  //   password: hashedPassword,
-  // });
-
   if (user) {
     res.status(201).json({
       _id: user.id,
