@@ -2,10 +2,14 @@ const asyncHandler = require("express-async-handler");
 const { count } = require("../models/order_model.js");
 const Order = require("../models/order_model.js");
 const User = require("../models/user_model.js");
-const moment = require('moment')
+const moment = require("moment");
 
 function convertTZ(date, tzString) {
-  return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {timeZone: tzString}));   
+  return new Date(
+    (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {
+      timeZone: tzString,
+    })
+  );
 }
 
 // @desc    Add new order
@@ -37,31 +41,34 @@ const order = asyncHandler(async (req, res) => {
 
   let dateObj = new Date();
 
-  let currentDateTime = dateObj.toLocaleString("en-GB",{ timeZone: 'UTC' });
-  const currentDay = currentDateTime.substring(0,2)
-  const currentMonth = currentDateTime.substring(3,5)
-  const currentYear = currentDateTime.substring(6,10)
-  const hour = currentDateTime.substring(12,14)
-  const min = currentDateTime.substring(15,17)
-  const sec = currentDateTime.substring(18,20)
+  let currentDateTime = dateObj.toLocaleString("en-GB", { timeZone: "UTC" });
+  const currentDay = currentDateTime.substring(0, 2);
+  const currentMonth = currentDateTime.substring(3, 5);
+  const currentYear = currentDateTime.substring(6, 10);
+  const hour = currentDateTime.substring(12, 14);
+  const min = currentDateTime.substring(15, 17);
+  const sec = currentDateTime.substring(18, 20);
 
-  const today = moment(`${currentMonth}-${currentDay}-${currentYear} ${hour}:${min}:${sec} +0000`, "MM-DD-YYYY hh:mm:ss Z");
+  const today = moment(
+    `${currentMonth}-${currentDay}-${currentYear} ${hour}:${min}:${sec} +0000`,
+    "MM-DD-YYYY hh:mm:ss Z"
+  );
   var time = moment.duration("00:05:00");
-  today.subtract(time)
-  
+  today.subtract(time);
+
   const findpendingOrders = await Order.find({
     action: "pending",
     user: finduser,
     topup_no: topup_no,
     createdAt: {
       $gte: today.toDate(),
-      $lte: moment(today).endOf('day').toDate()
-    }
+      $lte: moment(today).endOf("day").toDate(),
+    },
   });
 
-  console.log(findpendingOrders)
+  console.log(findpendingOrders);
 
-  if(findpendingOrders.length != 0 && findpendingOrders != null){
+  if (findpendingOrders.length != 0 && findpendingOrders != null) {
     res.status(400);
     throw new Error("You can not reload on this number before 5 minutes");
   }
@@ -92,6 +99,7 @@ const order = asyncHandler(async (req, res) => {
     finduser.save();
 
     res.status(201).json({
+      user_info: finduser,
       operataor: order.operataor,
       amount: order.amount,
       topup_no: order.topup_no,
@@ -179,10 +187,13 @@ const getTotalOrder = asyncHandler(async (req, res) => {
   ]);
 
   //@desc finding today date
-  var date = new Date();
-  var year = date.getFullYear();
-  var month = date.getMonth() + 1;
-  var day = date.getDate();
+  let dateObj = new Date();
+
+  let currentDateTime = dateObj.toLocaleString("en-GB", { timeZone: "UTC" });
+  const day = currentDateTime.substring(0, 2);
+  const month = currentDateTime.substring(3, 5);
+  const year = currentDateTime.substring(6, 10);
+
   if (month < 10) {
     month = "0" + month;
   }
@@ -375,7 +386,7 @@ const updateOrderAction = asyncHandler(async (req, res) => {
     const userAmount = await User.findByIdAndUpdate(finduser.user._id, {
       amount: amount + order.amount,
     });
-  }  
+  }
 
   res.status(200).json(order);
 });

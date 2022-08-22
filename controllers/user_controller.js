@@ -284,7 +284,10 @@ const userWiseSubuserRecharge = asyncHandler(async (req, res) => {
 
   const rechargeUsers = users.map((user) => ({
     _id: user._id,
-    user: user.recharged_user.user_id.toString(),
+    user:
+      user.recharged_user == null
+        ? "user deleted"
+        : user.recharged_user.user_id.toString(),
     username: user.username,
     contact: user.contact,
     amount: user.amount,
